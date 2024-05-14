@@ -5,3 +5,4 @@ các chế độ chơi: dễ, trung bình, khó.
 số hình có sẵn: 2.
 
 video minh họa
+https://drive.google.com/file/d/1D-9Bdg9plGl3BoA3ucKvwdVzkfmUpebT/view?usp=sharing

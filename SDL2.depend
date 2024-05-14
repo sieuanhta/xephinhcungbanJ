@@ -844,3 +844,16 @@
 	<iomanip>
 	<cstdlib>
 
+1714927847 source:d:\23021697\itstime\mygame.cpp
+	<SDL.h>
+	<SDL_image.h>
+	<stdio.h>
+	<string>
+	<iostream>
+	<algorithm>
+	<vector>
+	<ctime>
+	<cmath>
+	<iomanip>
+	<cstdlib>
+

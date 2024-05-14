@@ -10,13 +10,22 @@
 #include <iomanip>
 #include <cstdlib>
 //Screen dimension constants
-const int SCREEN_WIDTH = 520;
-const int SCREEN_HEIGHT = 520;
+const int SCREEN_WIDTH = 500;
+const int SCREEN_HEIGHT = 500;
 const int NUM_IMAGES = 25;
 const int matrixsize=5;
+int randtimes=20;
 std::vector<std::vector<int> > matrix(matrixsize,std::vector<int>(matrixsize));
 std::vector<int> game_map(matrixsize*matrixsize);
-char* imagePaths[NUM_IMAGES] = {
+char* imagePaths[NUM_IMAGES];
+char* tomMap[NUM_IMAGES] = {
+        "itstime/tom00.png", "itstime/tom01.png", "itstime/tom02.png", "itstime/tom03.png", "itstime/tom04.png",
+        "itstime/tom10.png", "itstime/tom11.png", "itstime/tom12.png", "itstime/tom13.png", "itstime/tom14.png",
+        "itstime/tom20.png", "itstime/tom21.png", "itstime/tom22.png", "itstime/tom23.png", "itstime/tom24.png",
+        "itstime/tom30.png", "itstime/tom31.png", "itstime/tom32.png", "itstime/tom33.png", "itstime/tom34.png",
+        "itstime/tom40.png", "itstime/tom41.png", "itstime/tom42.png", "itstime/tom43.png", "itstime/44.png",
+};
+char* jerryMap[NUM_IMAGES] = {
         "itstime/00.png", "itstime/01.png", "itstime/02.png", "itstime/03.png", "itstime/04.png",
         "itstime/10.png", "itstime/11.png", "itstime/12.png", "itstime/13.png", "itstime/14.png",
         "itstime/20.png", "itstime/21.png", "itstime/22.png", "itstime/23.png", "itstime/24.png",
@@ -28,6 +37,9 @@ enum direction
         up, down, left, right
 
     };
+int choseTom = 0;
+int choseJerry = 1;
+int player_chose;
 //Starts up SDL and creates window
 bool init();
 
@@ -46,6 +58,12 @@ SDL_Renderer* gRenderer = NULL;
 // Array to store textures
 SDL_Texture* textures[25] = { NULL };
 SDL_Texture* changeTexture= NULL;
+SDL_Texture* gBackgroundTexture = NULL;
+SDL_Texture* gEasyTexture = NULL;
+SDL_Texture* gMediumTexture = NULL;
+SDL_Texture* gHardTexture = NULL;
+SDL_Texture* gTomTexture = NULL;
+SDL_Texture* gJerryTexture = NULL;
 
 // Function to load images
 SDL_Texture* loadTexture(char* path) {
@@ -119,6 +137,7 @@ bool init()
 	return success;
 }
 
+
 /*void reorganize_textures()
 {
     for (int i=0; i<NUM_IMAGES; i++)
@@ -135,14 +154,36 @@ bool loadMedia()
 
     changeTexture = loadTexture("itstime/youwin.png");
 
-    for (int i = 0; i < NUM_IMAGES; ++i) {
-        textures[i] = loadTexture(imagePaths[i]);
-        if (textures[i] == NULL) {
-            success = false;
+
+    gBackgroundTexture = loadTexture("itstime/background.png");
+    gEasyTexture = loadTexture("itstime/easy.png");
+    gMediumTexture = loadTexture("itstime/medium.png");
+    gHardTexture = loadTexture("itstime/hard.png");
+    gTomTexture = loadTexture("itstime/tom.png");
+    gJerryTexture = loadTexture("itstime/jerry.png");
+	return success;
+}
+
+void load_map_textures()
+{
+    if (player_chose == choseTom)
+    {
+        for (int i=0; i<NUM_IMAGES; i++)
+        {
+            imagePaths[i] = tomMap[i];
         }
     }
-
-	return success;
+    if (player_chose == choseJerry)
+    {
+        for (int i=0; i<NUM_IMAGES; i++)
+        {
+            imagePaths[i] = jerryMap[i];
+        }
+    }
+    for (int i = 0; i < NUM_IMAGES; ++i)
+    {
+        textures[i] = loadTexture(imagePaths[i]);
+    }
 }
 
 void renderTextures() {
@@ -166,6 +207,11 @@ void close() {
     for (int i = 0; i < NUM_IMAGES; ++i) {
         SDL_DestroyTexture(textures[i]);
     }
+    SDL_DestroyTexture(gBackgroundTexture);
+    SDL_DestroyTexture(gEasyTexture);
+    SDL_DestroyTexture(gMediumTexture);
+    SDL_DestroyTexture(gHardTexture);
+
 
     SDL_DestroyRenderer(gRenderer);
     SDL_DestroyWindow(gWindow);
@@ -244,7 +290,7 @@ void generate_map()
         std::cout << std::endl;
     }*/
 
-    int randtimes=20;
+
 
     std::srand(static_cast<unsigned int>(std::time(NULL)));
     std::vector<int> random_numbers;
@@ -465,6 +511,136 @@ void mainloop()
 			}
 }
 
+void makeEasyMap()
+{
+    randtimes = 5;
+}
+void makeMediumMap()
+{
+    randtimes = 20;
+}
+void makeHardMap()
+{
+    randtimes = 100;
+}
+
+void displayLevelSelection()
+{
+    bool levelSelected = false;
+    SDL_Event e;
+    SDL_Rect easyRect= {100,100,300,100}, mediumRect = {100,200,300,100}, hardRect={100,300,300,100};
+    SDL_Point mousePos;
+
+    //SDL_Texture* easyTexture = loadTexture("easy.png");
+    //SDL_Texture* mediumTexture = loadTexture("medium.png");
+    //SDL_Texture* hardTexture = loadTexture("hard.png");
+
+    SDL_RenderCopy(gRenderer, gBackgroundTexture, NULL, NULL);
+        // Render the easy, medium, and hard level option images at specific positions
+    SDL_RenderCopy(gRenderer, gEasyTexture, NULL, &easyRect);
+    SDL_RenderCopy(gRenderer, gMediumTexture, NULL, &mediumRect);
+    SDL_RenderCopy(gRenderer, gHardTexture, NULL, &hardRect);
+    SDL_RenderPresent(gRenderer);
+    while (!levelSelected)
+    {
+        while (SDL_PollEvent(&e) != 0)
+        {
+            if (e.type == SDL_QUIT)
+            {
+                close();
+                exit(0); // Exit the program if the user closes the window
+            }
+            else if (e.type == SDL_MOUSEBUTTONDOWN)
+            {
+                int mouseX, mouseY;
+                SDL_GetMouseState(&mouseX, &mouseY);
+
+                mousePos.x = mouseX;
+                mousePos.y = mouseY;
+                if (SDL_PointInRect(&mousePos, &easyRect))
+                {
+                    makeEasyMap();
+                    levelSelected = true;
+                }
+                if (SDL_PointInRect(&mousePos, &mediumRect))
+                {
+                    makeMediumMap();
+                    levelSelected = true;
+                }
+                if (SDL_PointInRect(&mousePos, &hardRect))
+                {
+                    makeHardMap();
+                    levelSelected = true;
+                }
+
+            }
+        }
+
+    }
+    // Free level selection textures
+    //SDL_DestroyTexture(gBackgroundTexture);
+    SDL_DestroyTexture(gEasyTexture);
+    SDL_DestroyTexture(gMediumTexture);
+    SDL_DestroyTexture(gHardTexture);
+}
+
+void displayImageSelection()
+{
+    bool imageSelected = false;
+    SDL_Event e;
+    SDL_Rect tomRect= {100,100,300,150}, jerryRect = {100,250,300,150};
+    SDL_Point mousePos;
+
+    //SDL_Texture* easyTexture = loadTexture("easy.png");
+    //SDL_Texture* mediumTexture = loadTexture("medium.png");
+    //SDL_Texture* hardTexture = loadTexture("hard.png");
+
+    SDL_RenderCopy(gRenderer, gBackgroundTexture, NULL, NULL);
+        // Render the easy, medium, and hard level option images at specific positions
+    SDL_RenderCopy(gRenderer, gTomTexture, NULL, &tomRect);
+    SDL_RenderCopy(gRenderer, gJerryTexture, NULL, &jerryRect);
+
+    SDL_RenderPresent(gRenderer);
+    while (!imageSelected)
+    {
+        while (SDL_PollEvent(&e) != 0)
+        {
+            if (e.type == SDL_QUIT)
+            {
+                close();
+                exit(0); // Exit the program if the user closes the window
+            }
+            else if (e.type == SDL_MOUSEBUTTONDOWN)
+            {
+                int mouseX, mouseY;
+                SDL_GetMouseState(&mouseX, &mouseY);
+
+                mousePos.x = mouseX;
+                mousePos.y = mouseY;
+                if (SDL_PointInRect(&mousePos, &tomRect))
+                {
+                    player_chose = choseTom;
+                    imageSelected = true;
+                    load_map_textures();
+                }
+                if (SDL_PointInRect(&mousePos, &jerryRect))
+                {
+                    player_chose = choseJerry;
+                    imageSelected = true;
+                    load_map_textures();
+                }
+
+            }
+        }
+
+    }
+    // Free level selection textures
+    SDL_DestroyTexture(gBackgroundTexture);
+    SDL_DestroyTexture(gTomTexture);
+    SDL_DestroyTexture(gJerryTexture);
+
+}
+
 int main( int argc, char* args[] )
 {
 	//Start up SDL and create window
@@ -481,6 +657,8 @@ int main( int argc, char* args[] )
 		}
 		else
 		{
+		    displayLevelSelection();
+		    displayImageSelection();
 		    generate_map();
 			//Main loop flag
 			mainloop();
